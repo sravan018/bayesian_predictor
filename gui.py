@@ -6,6 +6,7 @@ from logic import *
 import turtle,copy,itertools
 
 
+# main gui drawer function
 
 def draw_gui(t,b):
 	global var
@@ -66,6 +67,8 @@ def draw_gui(t,b):
 	options1(t,b,115+cond_quer,-85)
 	button_responses()
 
+# draws the buttons for the variables
+
 def options(t,l,x,y):
 	t.pu()
 	x1=x
@@ -119,20 +122,7 @@ def draw_box(t,l,b,color):
 
 def draw_box2(t,l,b,color):
 	t.pd()
-	t.color("#a7ad9c","white")
-	t.begin_fill()
-	t.fd(l)
-	t.rt(90)
-	t.pensize(5)
-	t.fd(b)
-	t.rt(90)
-	t.fd(l)
-	t.rt(90)
-	t.pensize(2)
-	t.fd(b)
-	t.rt(90)
-	t.end_fill()
-	t.color(color)
+	t.color(color,"white")
 	t.fd(l)
 	t.rt(90)
 	t.pensize(5)
@@ -176,6 +166,11 @@ yclick = 0
 #bayesian network
 bayesnet=None
 
+#making compute query clickable only once
+click_once=0
+
+
+# onclick functions
 def button_responses():
     turtle.onscreenclick(modifyglobalvariables)
 
@@ -186,20 +181,18 @@ def modifyglobalvariables(rawx,rawy):
     xclick = int(rawx//1)
     yclick = int(rawy//1)
 
-    # print(xclick)
-    # print(yclick)
-
     check_click_options(xclick,yclick)
 
 
 def check_click_options(x,y):
-	global l_box,b_box,sp_btw_l,sp_btw_b,cond_quer,cond_v,query_v,check_list
+	global l_box,b_box,sp_btw_l,sp_btw_b,cond_quer,cond_v,query_v,check_list,mar_quer,mar_cond,click_once
    	t=turtle
    	t.ht()
    	t.pu()
    	if 820<=x<=820+160 and -20-40<=y<=-20 : # exit option
    		exit()
-   	elif 820<=x<=820+160 and -870-40<=y<=-870 : # compute query option
+   	elif 820<=x<=820+160 and -870-40<=y<=-870 and click_once==0: # compute query option
+   		t.onscreenclick(None)
    		if len(query_v)==0 :
    			print("Invalid query, must have at least one query variable.")
 			t.onscreenclick(None)
@@ -226,9 +219,12 @@ def check_click_options(x,y):
 			check_list=[]
 			cond_v=[]
 			query_v=[]
+			mar_quer=[]
+			mar_cond=[]
+			click_once=0
 			draw_gui(t,var)
    		else:
-   			markov_blanket_displayer(t)
+   			t.onscreenclick(None)
    			t.goto(90+187 ,-870-30)
    			st1=""
    			st2=""
@@ -237,12 +233,12 @@ def check_click_options(x,y):
    			for i in cond_v:
    				st2+=i+","
    			t.write("P("+st1[:len(st1)-1]+" | "+st2[:len(st2)-1]+")",False,"left",("Arial",12,"normal"))
-   			# print("from gui",bayesnet)
-   			ans=computeProbability(query_v,cond_v,bayesnet)
+   			ans=computeProbability(query_v,cond_v,bayesnet,t)
+   			markov_blanket_displayer(t)
    			t.goto(90+110,-920-30)
    			t.write(str(ans),False,"left",("Arial",12,"normal"))
-
-   			# print("ans--------->",ans)
+   			click_once=1
+   			t.onscreenclick(modifyglobalvariables)
    		
    	elif 820<=x<=820+160 and -920-40<=y<=-920 :	# new query option
 		t.onscreenclick(None)
@@ -269,8 +265,12 @@ def check_click_options(x,y):
 		check_list=[]
 		cond_v=[]
 		query_v=[]
+		mar_quer=[]
+		mar_cond=[]
+		click_once=0
 		draw_gui(t,var)
    	else: # option select for variables
+   		t.onscreenclick(None)
 		for i in check_list:
 			if i[0][0]<=x<=i[0][0]+l_box and i[0][1]-b_box<=y<=i[0][1] and len(query_v)<10:
 				query_v.append(i[1])
@@ -308,11 +308,12 @@ def check_click_options(x,y):
 				check_list.remove(i)
 				mar_cond.append(i)
 				break
+		t.onscreenclick(modifyglobalvariables)
 	
 
 
 
-# non-GUI related functions
+# GUI functions for displaying markov blanket
 
 def markov_blanket_string(node_list):
 	st="{"
@@ -332,19 +333,26 @@ def markov_blanket_displayer(t):
 	for i in mar_quer:
 		t.goto(i[0][0]+180,i[0][1]-30)
 		st=markov_blanket_string(computeMarkovBlanket(bayesnet,bayesnet.getnode(i[1])))
-		t.write(st,False,"left",("Arial",9,"normal"))
+		t.write(st,False,"left",("Arial",9,"bold"))
 	for i in mar_cond:
 		t.goto(i[0][0]+180+cond_quer,i[0][1]-30)
 		st=markov_blanket_string(computeMarkovBlanket(bayesnet,bayesnet.getnode(i[1])))
-		t.write(st,False,"left",("Arial",9,"normal"))
+		t.write(st,False,"left",("Arial",9,"bold"))
 
+
+# non-GUI related functions
 
 def createExpression(t,b,bnn):
 	global bayesnet
 	bayesnet=bnn
 	draw_gui(t,b)
 
-def computeProbability(quer,cond,bnn):
+def computeProbability(quer,cond,bnn,t):
+	t.goto(800,-520)
+	draw_box2(t,160,40,"#dabcbd")
+	t.goto(800+80 ,-520-30)
+	t.color("red")
+	t.write("Processing Query",False,"center",("Arial",12,"normal"))
 	numo=[]
 	deno=[]
 	for i in quer:
@@ -365,25 +373,34 @@ def computeProbability(quer,cond,bnn):
 		den=1
 	else:
 		den=cal_prob(quer,cond,deno,bnn,1)
+	t.goto(795,-515)
+	t.pd()
+	t.color("white","white")
+	t.begin_fill()
+	t.fd(180)
+	t.rt(90)
+	t.fd(60)
+	t.rt(90)
+	t.fd(180)
+	t.rt(90)
+	t.fd(60)
+	t.rt(90)
+	t.end_fill()
+	t.pu()
+	t.color("black")
 	return num/den
 
+# calculates probability value for numerator or denominator term
 def cal_prob(quer,cond,lis,bnn,typer): # lis is either numo or deno (type=0 for numo and type=1 for deno)
 	temp=copy.deepcopy(lis)
-	# print("initial",lis)
 	k=0
 	while k < len(lis):
-		# print("enter",lis)
 		mtemp=computeMarkovBlanket(bnn,bnn.getnode(lis[k]))
 		for j in mtemp:
 			lis.extend(j.name)
 			lis=remove_dup(lis)
-			# lis=list(set(lis))
-			# print(bnn.getnode(lis[k]).name,j.name,lis)
-		# print(bnn.getnode(lis[k]).name,"--------",lis)
 		k+=1
-	# print("final",lis)
 	lis=list(set(lis)-set(temp))
-	# print("final 2.0",lis)
 	#generating combos
 	lst = list(itertools.product([0, 1], repeat=len(lis)))
 	s=0
@@ -416,9 +433,6 @@ def cal_var(var,lis,bnn): # var is variable whose prob is calculated, lis is lis
 			index_s+="1"
 		elif "~"+i in lis:
 			index_s+="0"
-	# print("lis",lis)
-	# print("var",var)
-	# print("ind----",index_s)
 	if len(par_list)==0:
 		return n.cpt[0]
 	else:
@@ -433,6 +447,7 @@ def cal_comb(lis,bnn): # returns the probability product for a given combo
 			p*=cal_var(i,lis,bnn)
 	return p
 
+# for removing duplicate elements in the list
 def remove_dup(l):
 	temp=[]
 	for i in l:

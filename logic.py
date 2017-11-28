@@ -4,13 +4,21 @@
 from __future__ import print_function
 import turtle,copy
 
-
+# data structure for storing variables
 class node():
 	def __init__(self,name,parent_list,cpt):
 		self.name=name
 		self.parent_list=parent_list
 		self.cpt=cpt
+		self.parent_pointers=[] # pointers to parent nodes of the current node 
+		self.children_pointers=[] # pointers to children nodes of the current node
+	def add_parent_pointer(self,nod_e): 
+		self.parent_pointers.append(nod_e)
+	def add_children_pointer(self,nod_e):
+		self.children_pointers.append(nod_e)
 
+
+# data structure for bayesian network
 class BayesianNetwork():
 	def __init__(self):
 		self.node_list=[]
@@ -20,7 +28,7 @@ class BayesianNetwork():
 		for i in self.node_list:
 			if i.name==node_name:
 				return i
-	def find_children(self,p):
+	def find_children(self,p): 
 		children=[]
 		for i in self.node_list:
 			if p in i.parent_list:
@@ -37,10 +45,11 @@ class BayesianNetwork():
 	def __repr__(self):
 		st=""
 		for i in self.node_list:
-			st+=i.name+" -------> "+self.print_children(self.find_children(i.name))+"\n"
+			st+=i.name+"   ------->  "+self.print_children(self.find_children(i.name))+"\n"
 		if len(st)-1>0:
 			st=st[:len(st)-1]
 		return st
+
 
 def createBayesianNetwork(input_text):
 	bnn=BayesianNetwork()
@@ -54,6 +63,15 @@ def createBayesianNetwork(input_text):
 			t2=[]
 		n=node(t1,t2,map(float,t3.split()))
 		bnn.add_node(n)
+
+	# linking nodes
+	for i in bnn.node_list:
+		for j in i.parent_list:
+			i.add_parent_pointer(bnn.getnode(j))
+		children=bnn.find_children(i.name)
+		for j in children:
+			i.add_children_pointer(bnn.getnode(j))
+
 	print(bnn)
 	return bnn
 

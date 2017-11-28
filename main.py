@@ -7,6 +7,8 @@ from gui import *
 from logic import *
 import turtle,copy
 
+
+# to get the variable list which used in the gui phase
 def get_names(bayes):
 	b=[]
 	for i in bayes.node_list:
@@ -15,16 +17,21 @@ def get_names(bayes):
 	return b
 
 def main():
-	input_text="input2.txt"#raw_input("Enter the file name to be processed: ")
-	print(input_text)
+	input_text=raw_input("Enter the file name that is to be processed: ")
+	print("Parent       Children")
 	bnn=createBayesianNetwork(input_text)
 	b=get_names(bnn)
-	blanket=[]
-	blanket=computeMarkovBlanket(bnn,bnn.getnode('B'))
-	for i in blanket:
-		print(i.name,end=" ")
 	print("")
-	# print("prob",cal_var("A",["V","~G","~N","~X","B","H"],bnn))
+	var=raw_input("Enter a variable to find its markov blanket\n[variable name in capital letters/(n - if markov blanket is not needed)]: ")
+	if var!='n':
+		print("Markov Blanket of ",var," :")
+		blanket=[]
+		blanket=computeMarkovBlanket(bnn,bnn.getnode(var))
+		st="{"
+		for i in blanket:
+			st+=i.name+", "
+		st=st[:len(st)-2]+"}"
+		print(st)
 	t=turtle
 	t.title("BAYESIAN PREDICTOR")
 	t.ht()

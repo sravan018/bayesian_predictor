@@ -46,6 +46,8 @@ def createBayesianNetwork(input_text):
 	bnn=BayesianNetwork()
 	f=open(input_text,"r")
 	for line in f:
+		if line=="$$":
+			break
 		[t1,t4,t3]=line.split(" >> ")
 		t2=t4[1:len(t4)-1].split(", ")
 		if t2[0]=='':
@@ -55,12 +57,13 @@ def createBayesianNetwork(input_text):
 	print(bnn)
 	return bnn
 
-def computeMarkovBlanket(bayesian_network,node):
+
+def computeMarkovBlanket(bayesian_network,nod_e):
 	blanket=[]
 	node_names=[]
-	node_names.append(node.name)
-	node_names+=node.parent_list
-	child=bayesian_network.find_children(node.name)
+	node_names.append(nod_e.name)
+	node_names+=nod_e.parent_list
+	child=bayesian_network.find_children(nod_e.name)
 	for i in child:
 		node_names+=bayesian_network.getnode(i).parent_list
 	node_names+=child
@@ -68,3 +71,7 @@ def computeMarkovBlanket(bayesian_network,node):
 	for i in node_names:
 		blanket.append(bayesian_network.getnode(i))
 	return blanket
+
+# createExpression function is defined in gui.py
+	
+# computeProbability function is defined in gui.py
